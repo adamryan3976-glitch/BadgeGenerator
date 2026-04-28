@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Universal Badge Generator</title>
     <style id="dynamic-layout">
-        /* Default Avery 5395 styles - these are updated via JS */
         :root {
             --label-width: 3.375in;
             --label-height: 2.333in;
@@ -13,10 +12,13 @@
             --page-left: 0.5625in;
             --col-gap: 0.625in;
             --row-gap: 0.167in;
+            --cols: 2;
+            /* Dynamic sizing defaults */
+            --agenda-font-size: 8pt;
         }
 
         @page { size: letter; margin: 0; }
-        body { font-family: 'Segoe UI', system-ui, sans-serif; margin: 0; padding: 0; background-color: #f0f2f5; }
+        body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; margin: 0; padding: 0; background-color: #f0f2f5; }
 
         .page {
             width: 8.5in;
@@ -26,100 +28,177 @@
             padding-right: var(--page-left);
             background: white;
             display: grid;
-            grid-template-columns: var(--label-width) var(--label-width);
-            grid-template-rows: repeat(4, var(--label-height));
+            grid-template-columns: repeat(var(--cols), var(--label-width));
             column-gap: var(--col-gap);
             row-gap: var(--row-gap);
             box-sizing: border-box;
             page-break-after: always;
+            align-content: start;
         }
 
         .badge {
             width: var(--label-width);
             height: var(--label-height);
             border: 1px dashed #ddd;
-            padding: 0.15in;
+            padding: 0.12in;
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
             background-color: #fff;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
             position: relative;
             overflow: hidden;
         }
 
-        .badge.no-media {
-            background-color: #ff66b2 !important;
-            border: 2px solid #ff1493;
+        /* Standard background overlay if a custom image is set */
+        .badge.has-bg::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255, 255, 255, 0.7); /* Lighten background to ensure text readability */
+            z-index: 0;
+        }
+
+        /* Ensure content stays above background overlay */
+        .badge > * { position: relative; z-index: 1; }
+
+        /* Default "No Media" Styling if no custom background is uploaded */
+        .badge.no-media:not(.has-bg) {
+            background-color: #FFF0F5 !important;
+            border: 2.5px solid #FF1493 !important;
         }
 
         @media print {
             body { background: none; }
             * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-            .badge { border: none; }
-            #ui-sidebar { display: none; }
+            .badge { border: none !important; }
+            #ui-sidebar { display: none !important; }
+            #badge-container { margin-left: 0 !important; padding: 0 !important; }
         }
 
         /* Branding & Layout */
-        .header { display: flex; align-items: center; border-bottom: 2px solid #8B0000; padding-bottom: 4px; margin-bottom: 6px; }
-        .logo { height: 0.45in; width: auto; margin-right: 10px; object-fit: contain; }
-        .event-title { font-size: 9pt; font-weight: bold; color: #333; line-height: 1.1; flex: 1; }
+        .header { display: flex; align-items: center; border-bottom: 2px solid #8B0000; padding-bottom: 4px; margin-bottom: 4px; }
+        .logo { height: 0.4in; width: auto; margin-right: 8px; object-fit: contain; }
+        .event-title { font-size: 8.5pt; font-weight: bold; color: #333; line-height: 1.1; flex: 1; }
         
-        .student-name { font-size: 13pt; font-weight: 900; text-transform: uppercase; margin: 2px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .student-info { font-size: 8pt; color: #555; margin-bottom: 2px; }
-        .sessions-container { background-color: rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.05); border-radius: 4px; padding: 4px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; }
-        .session-row { display: flex; font-size: 7.5pt; margin-bottom: 1px; }
-        .session-label { font-weight: bold; color: #8B0000; margin-right: 5px; min-width: 65px; }
+        .student-name { font-size: 12pt; font-weight: 900; text-transform: uppercase; margin: 1px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .student-info { font-size: 7.5pt; color: #555; margin-bottom: 1px; }
+        .supervisor { font-size: 6.5pt; font-style: italic; color: #666; margin-bottom: 4px; height: 10px; overflow: hidden; }
+
+        .sessions-container { 
+            background-color: rgba(255, 255, 255, 0.6); 
+            border: 1px solid rgba(0,0,0,0.05); 
+            border-radius: 4px; 
+            padding: 4px 6px; 
+            flex-grow: 1; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            gap: 2px;
+            overflow: hidden;
+        }
+        .session-row { 
+            display: flex; 
+            font-size: var(--agenda-font-size); 
+            line-height: 1.2; 
+            align-items: baseline; 
+            border-bottom: 1px dotted rgba(0,0,0,0.05);
+            padding: 2px 0;
+        }
+        .session-row:last-child { border-bottom: none; }
+
+        .session-label { font-weight: bold; color: #8B0000; margin-right: 8px; flex-shrink: 0; }
+        .session-activity { flex: 1; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 4px; }
+        .session-loc { color: #666; font-style: italic; font-size: 0.9em; flex-shrink: 0; }
 
         /* UI Sidebar */
         #ui-sidebar {
-            position: fixed; top: 0; left: 0; width: 320px; height: 100vh;
-            background: #1a1a1b; color: #e4e6eb; padding: 20px; overflow-y: auto;
+            position: fixed; top: 0; left: 0; width: 340px; height: 100vh;
+            background: #1a1a1b; color: #e4e6eb; padding: 15px; overflow-y: auto;
             box-shadow: 2px 0 10px rgba(0,0,0,0.3); z-index: 1000;
+            box-sizing: border-box;
         }
-        #badge-container { margin-left: 320px; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        @media print { #badge-container { margin-left: 0; padding: 0; } }
+        #badge-container { margin-left: 340px; display: flex; flex-direction: column; align-items: center; padding: 20px; }
 
-        .control-group { margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #333; }
-        label { display: block; font-size: 11px; font-weight: bold; margin-bottom: 5px; color: #b0b3b8; text-transform: uppercase; }
-        select, input, button { width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #333; background: #242526; color: white; margin-bottom: 10px; box-sizing: border-box; }
+        .control-group { margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #333; }
+        label { display: block; font-size: 10px; font-weight: bold; margin-bottom: 4px; color: #b0b3b8; text-transform: uppercase; }
+        select, input, button { width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #333; background: #242526; color: white; margin-bottom: 8px; box-sizing: border-box; font-size: 13px; }
         .btn-primary { background: #8B0000; border: none; font-weight: bold; cursor: pointer; padding: 12px; margin-top: 10px; }
         .btn-primary:hover { background: #a00000; }
+        
+        .template-info { font-size: 11px; color: #4bb543; margin-top: -5px; margin-bottom: 10px; }
+        .template-dims { font-size: 12px; font-weight: bold; color: #ffcc00; margin-bottom: 10px; display: block; }
+        
         .mapping-row { display: flex; align-items: center; gap: 5px; margin-bottom: 5px; }
         .mapping-row span { font-size: 11px; flex: 1; }
-        .mapping-row select { width: 60%; margin-bottom: 0; font-size: 11px; }
+        .mapping-row select { width: 60%; margin-bottom: 0; font-size: 11px; padding: 4px; }
+
+        .agenda-builder-row {
+            background: #2a2a2b;
+            padding: 8px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            border-left: 3px solid #8B0000;
+        }
+        .agenda-builder-row input { margin-bottom: 5px; border-color: #444; }
+        .agenda-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+        .agenda-grid select { margin-bottom: 0; font-size: 11px; }
+        .remove-row-btn { background: #444; color: #ff9999; border: none; padding: 2px 8px; font-size: 10px; cursor: pointer; border-radius: 2px; margin-top: 4px; }
+        
+        .file-input-wrapper { background: #2a2a2b; padding: 8px; border-radius: 4px; margin-bottom: 8px; border: 1px dashed #444; }
+        .file-input-wrapper span { font-size: 10px; color: #888; display: block; margin-bottom: 4px; }
     </style>
 </head>
 <body>
 
     <div id="ui-sidebar">
-        <h2 style="margin-top:0; color: #fff;">Badge Studio</h2>
+        <h2 style="margin-top:0; color: #fff; font-size: 18px;">Badge Studio</h2>
         
         <div class="control-group">
-            <label>1. Label Template</label>
-            <select id="templateSelector">
-                <option value="5395">Avery 5395 (8 labels/sheet)</option>
-                <option value="5160">Avery 5160 (30 labels/sheet)</option>
-                <option value="5163">Avery 5163 (10 labels/sheet)</option>
-            </select>
+            <label>1. Avery Template Code</label>
+            <input type="text" id="templateSearch" placeholder="Enter code (e.g. 5395, 5392)" value="5395">
+            <div id="templateFeedback" class="template-info">Template: Avery 5395</div>
+            <div id="templateDims" class="template-dims">Size: 3.375" x 2.333"</div>
         </div>
 
         <div class="control-group">
-            <label>2. Branding</label>
+            <label>2. Branding & Backgrounds</label>
             <input type="text" id="eventTitleInput" placeholder="Event Title" value="DDSB Indigenous Celebration Day">
-            <input type="file" id="logoInput" accept="image/*">
+            
+            <div class="file-input-wrapper">
+                <span>Corner Logo:</span>
+                <input type="file" id="logoInput" accept="image/*">
+            </div>
+
+            <div class="file-input-wrapper">
+                <span>Background (Media YES):</span>
+                <input type="file" id="bgYesInput" accept="image/*">
+            </div>
+
+            <div class="file-input-wrapper">
+                <span>Background (Media NO):</span>
+                <input type="file" id="bgNoInput" accept="image/*">
+            </div>
         </div>
 
         <div class="control-group">
-            <label>3. Data Source</label>
+            <label>3. Data Source (CSV)</label>
             <input type="file" id="csvInput" accept=".csv">
             <div id="mapping-container" style="display:none;">
-                <label style="color: #4bb543;">Map Columns:</label>
                 <div id="column-mappings"></div>
             </div>
         </div>
 
         <div class="control-group">
-            <label>4. Blank Badges</label>
+            <label>4. Agenda Builder</label>
+            <div id="agenda-rows-container"></div>
+            <button onclick="addAgendaRow()" style="background: #3a3b3c; border: 1px solid #444; color: #ddd; font-size: 11px; padding: 5px; cursor: pointer;">+ Add Agenda Row</button>
+        </div>
+
+        <div class="control-group">
+            <label>5. Blanks</label>
             <input type="number" id="blankCount" value="0" min="0" placeholder="Qty of blanks">
         </div>
 
@@ -129,7 +208,7 @@
 
     <div id="badge-container">
         <div class="page" id="preview-placeholder">
-            <div style="grid-column: 1 / -1; display: flex; align-items: center; justify-content: center; color: #999;">
+            <div style="grid-column: 1 / -1; display: flex; align-items: center; justify-content: center; color: #999; padding-top: 2in;">
                 Upload a CSV to generate badges
             </div>
         </div>
@@ -138,46 +217,109 @@
     <script>
         const DEFAULT_LOGO = "https://lh3.googleusercontent.com/d/1Tl0C8dOaA5aT3dwwfzyWJP7KNrkeiwx5";
         let currentLogo = DEFAULT_LOGO;
+        let backgroundYes = null;
+        let backgroundNo = null;
         let csvData = [];
         let headers = [];
         
+        let agendaConfig = [
+            { title: "Session 1", activityIdx: -1, locationIdx: -1 },
+            { title: "Session 2", activityIdx: -1, locationIdx: -1 }
+        ];
+
         const templates = {
-            "5395": { w: "3.375in", h: "2.333in", top: "0.5in", left: "0.5625in", colG: "0.625in", rowG: "0.167in", cols: 2, rows: 4, perPage: 8 },
-            "5160": { w: "2.625in", h: "1.0in", top: "0.5in", left: "0.219in", colG: "0.125in", rowG: "0in", cols: 3, rows: 10, perPage: 30 },
-            "5163": { w: "4.0in", h: "2.0in", top: "0.5in", left: "0.156in", colG: "0.188in", rowG: "0in", cols: 2, rows: 5, perPage: 10 }
+            "5395": { name: "Avery 5395", w: "3.375in", h: "2.333in", top: "0.5in", left: "0.5625in", colG: "0.625in", rowG: "0.167in", cols: 2, rows: 4, perPage: 8 },
+            "5392": { name: "Avery 5392", w: "4.0in", h: "3.0in", top: "1.0in", left: "0.25in", colG: "0in", rowG: "0in", cols: 2, rows: 3, perPage: 6 },
+            "5160": { name: "Avery 5160", w: "2.625in", h: "1.0in", top: "0.5in", left: "0.219in", colG: "0.125in", rowG: "0in", cols: 3, rows: 10, perPage: 30 },
+            "5163": { name: "Avery 5163", w: "4.0in", h: "2.0in", top: "0.5in", left: "0.156in", colG: "0.188in", rowG: "0in", cols: 2, rows: 5, perPage: 10 },
+            "5164": { name: "Avery 5164", w: "4.0in", h: "3.33in", top: "0.5in", left: "0.25in", colG: "0in", rowG: "0in", cols: 2, rows: 3, perPage: 6 },
+            "7447": { name: "Avery 7447", w: "3.0in", h: "4.0in", top: "0.75in", left: "1.25in", colG: "0in", rowG: "0in", cols: 2, rows: 2, perPage: 4 }
         };
 
-        const mappings = {
+        const globalMappings = {
             name: { label: "Full Name", index: -1 },
-            info1: { label: "Info Line 1 (School)", index: -1 },
-            info2: { label: "Info Line 2 (Grade)", index: -1 },
-            sub: { label: "Subtext (Supervisor)", index: -1 },
-            media: { label: "Media Release Col", index: -1 },
-            s1: { label: "Session 1", index: -1 },
-            s1l: { label: "S1 Location", index: -1 },
-            s2: { label: "Session 2", index: -1 },
-            s2l: { label: "S2 Location", index: -1 }
+            info1: { label: "Info 1 (School)", index: -1 },
+            info2: { label: "Info 2 (Grade)", index: -1 },
+            sub: { label: "Supervisor", index: -1 },
+            media: { label: "Media Release", index: -1 }
         };
 
-        // Handle Template Change
-        document.getElementById('templateSelector').addEventListener('change', (e) => {
-            const t = templates[e.target.value];
-            const root = document.documentElement;
-            root.style.setProperty('--label-width', t.w);
-            root.style.setProperty('--label-height', t.h);
-            root.style.setProperty('--page-top', t.top);
-            root.style.setProperty('--page-left', t.left);
-            root.style.setProperty('--col-gap', t.colG);
-            root.style.setProperty('--row-gap', t.rowG);
-            
-            const style = document.getElementById('dynamic-layout');
-            style.innerHTML = style.innerHTML.replace(/grid-template-columns:.*?;/, `grid-template-columns: repeat(${t.cols}, var(--label-width));`);
-            style.innerHTML = style.innerHTML.replace(/grid-template-rows:.*?;/, `grid-template-rows: repeat(${t.rows}, var(--label-height));`);
-            
+        function addAgendaRow() {
+            agendaConfig.push({ title: "New Item", activityIdx: -1, locationIdx: -1 });
+            renderAgendaBuilder();
+            updateDynamicStyles();
             render();
+        }
+
+        function removeAgendaRow(idx) {
+            agendaConfig.splice(idx, 1);
+            renderAgendaBuilder();
+            updateDynamicStyles();
+            render();
+        }
+
+        function updateDynamicStyles() {
+            const count = agendaConfig.length;
+            const root = document.documentElement;
+            let size = "8pt";
+            if (count <= 2) size = "11pt";
+            else if (count === 3) size = "9.5pt";
+            else if (count === 4) size = "8.5pt";
+            else if (count === 5) size = "7.5pt";
+            else size = "6.5pt";
+            root.style.setProperty('--agenda-font-size', size);
+        }
+
+        function renderAgendaBuilder() {
+            const container = document.getElementById('agenda-rows-container');
+            container.innerHTML = '';
+            agendaConfig.forEach((row, idx) => {
+                const div = document.createElement('div');
+                div.className = 'agenda-builder-row';
+                let activityOptions = `<option value="-1">-- Activity --</option>`;
+                let locationOptions = `<option value="-1">-- Location --</option>`;
+                headers.forEach((h, hIdx) => {
+                    activityOptions += `<option value="${hIdx}" ${hIdx === row.activityIdx ? 'selected' : ''}>${h}</option>`;
+                    locationOptions += `<option value="${hIdx}" ${hIdx === row.locationIdx ? 'selected' : ''}>${h}</option>`;
+                });
+                div.innerHTML = `
+                    <input type="text" value="${row.title}" oninput="agendaConfig[${idx}].title = this.value; render();" placeholder="Row Label">
+                    <div class="agenda-grid">
+                        <select onchange="agendaConfig[${idx}].activityIdx = parseInt(this.value); render();">${activityOptions}</select>
+                        <select onchange="agendaConfig[${idx}].locationIdx = parseInt(this.value); render();">${locationOptions}</select>
+                    </div>
+                    <button class="remove-row-btn" onclick="removeAgendaRow(${idx})">Remove</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        document.getElementById('templateSearch').addEventListener('input', (e) => {
+            const code = e.target.value.trim();
+            const feedback = document.getElementById('templateFeedback');
+            const dims = document.getElementById('templateDims');
+            if (templates[code]) {
+                const t = templates[code];
+                const root = document.documentElement;
+                root.style.setProperty('--label-width', t.w);
+                root.style.setProperty('--label-height', t.h);
+                root.style.setProperty('--page-top', t.top);
+                root.style.setProperty('--page-left', t.left);
+                root.style.setProperty('--col-gap', t.colG);
+                root.style.setProperty('--row-gap', t.rowG);
+                root.style.setProperty('--cols', t.cols);
+                feedback.textContent = `Template: ${t.name}`;
+                feedback.style.color = "#4bb543";
+                dims.textContent = `Size: ${t.w.replace('in','')} x ${t.h.replace('in','')}`;
+                render();
+            } else {
+                feedback.textContent = "Template not found.";
+                feedback.style.color = "#ff9999";
+                dims.textContent = "";
+            }
         });
 
-        // Handle Logo Upload
+        // Logo Upload
         document.getElementById('logoInput').addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (file) {
@@ -187,52 +329,79 @@
             }
         });
 
-        // Handle CSV Upload
+        // Background Upload (YES)
+        document.getElementById('bgYesInput').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (ev) => { backgroundYes = ev.target.result; render(); };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Background Upload (NO)
+        document.getElementById('bgNoInput').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (ev) => { backgroundNo = ev.target.result; render(); };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        document.getElementById('eventTitleInput').addEventListener('input', render);
+        document.getElementById('blankCount').addEventListener('input', render);
+
         document.getElementById('csvInput').addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (file) {
                 const reader = new FileReader();
                 reader.onload = (ev) => {
-                    const lines = ev.target.result.split(/\r?\n/);
+                    const lines = ev.target.result.split(/\r?\n/).filter(l => l.trim() !== "");
                     headers = lines[0].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(h => h.replace(/"/g, '').trim());
                     csvData = lines.slice(1).map(line => line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.replace(/"/g, '').trim()));
+                    
+                    Object.keys(globalMappings).forEach(key => {
+                        globalMappings[key].index = headers.findIndex(h => {
+                            const l = h.toLowerCase();
+                            if (key === 'name') return l.includes('name');
+                            if (key === 'info1') return l.includes('school');
+                            if (key === 'info2') return l.includes('grade');
+                            if (key === 'sub') return l.includes('supervisor');
+                            if (key === 'media') return l.includes('media');
+                            return false;
+                        });
+                    });
+
+                    if (headers.some(h => h.toLowerCase().includes('session 1'))) {
+                        agendaConfig[0].activityIdx = headers.findIndex(h => h.toLowerCase() === 'session 1');
+                        agendaConfig[0].locationIdx = headers.findIndex(h => h.toLowerCase().includes('session 1 location'));
+                        if (agendaConfig[1]) {
+                            agendaConfig[1].activityIdx = headers.findIndex(h => h.toLowerCase() === 'session 2');
+                            agendaConfig[1].locationIdx = headers.findIndex(h => h.toLowerCase().includes('session 2 location'));
+                        }
+                    }
                     setupMappingUI();
+                    renderAgendaBuilder();
                 };
                 reader.readAsText(file);
             }
         });
-
-        document.getElementById('blankCount').addEventListener('input', render);
-        document.getElementById('eventTitleInput').addEventListener('input', render);
 
         function setupMappingUI() {
             const container = document.getElementById('column-mappings');
             const wrapper = document.getElementById('mapping-container');
             container.innerHTML = '';
             wrapper.style.display = 'block';
-
-            Object.keys(mappings).forEach(key => {
+            Object.keys(globalMappings).forEach(key => {
                 const row = document.createElement('div');
                 row.className = 'mapping-row';
-                
-                // Try to guess index
-                let guessedIndex = headers.findIndex(h => h.toLowerCase().includes(key === 'name' ? 'name' : key));
-                if (key === 'media') guessedIndex = headers.findIndex(h => h.toLowerCase().includes('media'));
-                
                 let options = `<option value="-1">-- Skip --</option>`;
                 headers.forEach((h, i) => {
-                    options += `<option value="${i}" ${i === guessedIndex ? 'selected' : ''}>${h}</option>`;
+                    options += `<option value="${i}" ${i === globalMappings[key].index ? 'selected' : ''}>${h}</option>`;
                 });
-
-                row.innerHTML = `<span>${mappings[key].label}</span><select id="map-${key}">${options}</select>`;
+                row.innerHTML = `<span>${globalMappings[key].label}</span><select onchange="globalMappings['${key}'].index = parseInt(this.value); render();">${options}</select>`;
                 container.appendChild(row);
-
-                row.querySelector('select').addEventListener('change', (e) => {
-                    mappings[key].index = parseInt(e.target.value);
-                    render();
-                });
-                // Initialize
-                mappings[key].index = guessedIndex;
             });
             render();
         }
@@ -241,36 +410,47 @@
             const eventTitle = document.getElementById('eventTitleInput').value;
             let noMedia = false;
             
-            if (data && mappings.media.index !== -1) {
-                const val = (data[mappings.media.index] || "").toLowerCase();
+            if (data && globalMappings.media.index !== -1) {
+                const val = (data[globalMappings.media.index] || "").toLowerCase();
                 if (val !== "yes" && val !== "") noMedia = true;
             }
 
-            const getVal = (key) => (data && mappings[key].index !== -1) ? data[mappings[key].index] : "";
+            const getVal = (idx) => (data && idx !== -1) ? data[idx] : "";
+            const getMapVal = (key) => (data && globalMappings[key].index !== -1) ? data[globalMappings[key].index] : "";
+
+            let agendaHtml = agendaConfig.map(row => `
+                <div class="session-row">
+                    <span class="session-label">${row.title}:</span>
+                    <span class="session-activity">${getVal(row.activityIdx) || (data ? '' : '________________')}</span>
+                    <span class="session-loc">${getVal(row.locationIdx)}</span>
+                </div>
+            `).join('');
+
+            // Background logic
+            let bgStyle = "";
+            let hasBgClass = "";
+            if (noMedia && backgroundNo) {
+                bgStyle = `background-image: url('${backgroundNo}');`;
+                hasBgClass = "has-bg";
+            } else if (!noMedia && backgroundYes) {
+                bgStyle = `background-image: url('${backgroundYes}');`;
+                hasBgClass = "has-bg";
+            }
 
             return `
-                <div class="badge ${noMedia ? 'no-media' : ''}">
+                <div class="badge ${noMedia ? 'no-media' : ''} ${hasBgClass}" style="${bgStyle}">
                     <div class="header">
                         <img src="${currentLogo}" class="logo" onerror="this.src='${DEFAULT_LOGO}'">
                         <div class="event-title">${eventTitle}</div>
                     </div>
-                    <div class="student-name">${getVal('name') || "________________"}</div>
+                    <div class="student-name">${getMapVal('name') || "________________"}</div>
                     <div class="student-info">
-                        ${getVal('info1')} ${getVal('info2') ? '&bull; ' + getVal('info2') : ''}
+                        ${getMapVal('info1')} ${getMapVal('info2') ? '&bull; ' + getMapVal('info2') : ''}
                         ${!data ? '____________________' : ''}
                     </div>
-                    <div class="supervisor" style="font-size: 7pt;">${getVal('sub') ? 'Supervisor: ' + getVal('sub') : ''}</div>
+                    <div class="supervisor">${getMapVal('sub') ? 'Supervisor: ' + getMapVal('sub') : ''}</div>
                     <div class="sessions-container">
-                        <div class="session-row">
-                            <span class="session-label">Session 1:</span>
-                            <span style="flex:1">${getVal('s1')}</span>
-                            <span style="font-style:italic">${getVal('s1l')}</span>
-                        </div>
-                        <div class="session-row">
-                            <span class="session-label">Session 2:</span>
-                            <span style="flex:1">${getVal('s2')}</span>
-                            <span style="font-style:italic">${getVal('s2l')}</span>
-                        </div>
+                        ${agendaHtml}
                     </div>
                 </div>
             `;
@@ -279,19 +459,15 @@
         function render() {
             const container = document.getElementById('badge-container');
             container.innerHTML = '';
-            
-            const tid = document.getElementById('templateSelector').value;
-            const t = templates[tid];
+            const code = document.getElementById('templateSearch').value.trim();
+            const t = templates[code] || templates["5395"];
             const blankCount = parseInt(document.getElementById('blankCount').value) || 0;
-            
             let allItems = [...csvData];
             for(let i=0; i<blankCount; i++) allItems.push(null);
-
-            if (allItems.length === 0) {
-                container.innerHTML = '<div class="page"><div style="grid-column: 1/-1; display:flex; align-items:center; justify-content:center; color:#999;">Ready for data...</div></div>';
+            if (allItems.length === 0 && blankCount === 0) {
+                container.innerHTML = '<div class="page"><div style="grid-column: 1/-1; display:flex; align-items:center; justify-content:center; color:#999; padding-top:2in;">Ready for configuration...</div></div>';
                 return;
             }
-
             for (let i = 0; i < allItems.length; i += t.perPage) {
                 const page = document.createElement('div');
                 page.className = 'page';
@@ -299,9 +475,11 @@
                 page.innerHTML = chunk.map(item => createBadgeHTML(item)).join('');
                 container.appendChild(page);
             }
-
-            document.getElementById('status').textContent = `Total Items: ${allItems.length} (${csvData.length} data + ${blankCount} blanks)`;
+            document.getElementById('status').textContent = `Total: ${allItems.length} Badges`;
         }
+
+        updateDynamicStyles();
+        renderAgendaBuilder();
     </script>
 </body>
 </html>
