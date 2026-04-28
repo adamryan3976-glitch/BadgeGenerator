@@ -81,7 +81,7 @@
         /* Branding & Layout */
         .header { display: flex; align-items: center; border-bottom: 2px solid #8B0000; padding-bottom: 4px; margin-bottom: 4px; }
         .logo { height: 0.4in; width: auto; margin-right: 8px; object-fit: contain; }
-        .event-title { font-size: 8.5pt; font-weight: bold; color: #333; line-height: 1.1; flex: 1; }
+        .event-title { font-size: 8.5pt; font-weight: bold; color: #333; line-height: 1.1; flex: 1; min-height: 1em; }
         
         .student-name { font-size: 12pt; font-weight: 900; text-transform: uppercase; margin: 1px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .student-info { font-size: 7.5pt; color: #555; margin-bottom: 1px; }
@@ -128,8 +128,8 @@
         .btn-primary { background: #8B0000; border: none; font-weight: bold; cursor: pointer; padding: 12px; margin-top: 10px; }
         .btn-primary:hover { background: #a00000; }
         
-        .template-info { font-size: 11px; color: #4bb543; margin-top: -5px; margin-bottom: 10px; }
-        .template-dims { font-size: 12px; font-weight: bold; color: #ffcc00; margin-bottom: 10px; display: block; }
+        .template-info { font-size: 11px; color: #4bb543; margin-top: -5px; margin-bottom: 10px; min-height: 14px; }
+        .template-dims { font-size: 12px; font-weight: bold; color: #ffcc00; margin-bottom: 10px; display: block; min-height: 16px; }
         
         .mapping-row { display: flex; align-items: center; gap: 5px; margin-bottom: 5px; }
         .mapping-row span { font-size: 11px; flex: 1; }
@@ -158,14 +158,14 @@
         
         <div class="control-group">
             <label>1. Avery Template Code</label>
-            <input type="text" id="templateSearch" placeholder="Enter code (e.g. 5395, 5392)" value="5395">
-            <div id="templateFeedback" class="template-info">Template: Avery 5395</div>
-            <div id="templateDims" class="template-dims">Size: 3.375" x 2.333"</div>
+            <input type="text" id="templateSearch" placeholder="Enter code (e.g. 5395, 5392)" value="">
+            <div id="templateFeedback" class="template-info"></div>
+            <div id="templateDims" class="template-dims"></div>
         </div>
 
         <div class="control-group">
             <label>2. Branding & Backgrounds</label>
-            <input type="text" id="eventTitleInput" placeholder="Event Title" value="DDSB Indigenous Celebration Day">
+            <input type="text" id="eventTitleInput" placeholder="Enter Event Title" value="">
             
             <div class="file-input-wrapper">
                 <span>Corner Logo:</span>
@@ -209,7 +209,7 @@
     <div id="badge-container">
         <div class="page" id="preview-placeholder">
             <div style="grid-column: 1 / -1; display: flex; align-items: center; justify-content: center; color: #999; padding-top: 2in;">
-                Upload a CSV to generate badges
+                Enter a template code and upload a CSV to begin.
             </div>
         </div>
     </div>
@@ -313,9 +313,10 @@
                 dims.textContent = `Size: ${t.w.replace('in','')} x ${t.h.replace('in','')}`;
                 render();
             } else {
-                feedback.textContent = "Template not found.";
+                feedback.textContent = code ? "Template not found." : "";
                 feedback.style.color = "#ff9999";
                 dims.textContent = "";
+                if (!code) render(); // re-render to show placeholder if cleared
             }
         });
 
@@ -459,15 +460,24 @@
         function render() {
             const container = document.getElementById('badge-container');
             container.innerHTML = '';
-            const code = document.getElementById('templateSearch').value.trim();
-            const t = templates[code] || templates["5395"];
+            const codeInput = document.getElementById('templateSearch').value.trim();
+            
+            // If no template selected and no data, show placeholder
+            if (!codeInput && csvData.length === 0) {
+                container.innerHTML = '<div class="page"><div style="grid-column: 1/-1; display:flex; align-items:center; justify-content:center; color:#999; padding-top:2in;">Enter a template code and upload a CSV to begin.</div></div>';
+                return;
+            }
+
+            const t = templates[codeInput] || templates["5395"];
             const blankCount = parseInt(document.getElementById('blankCount').value) || 0;
             let allItems = [...csvData];
             for(let i=0; i<blankCount; i++) allItems.push(null);
+            
             if (allItems.length === 0 && blankCount === 0) {
-                container.innerHTML = '<div class="page"><div style="grid-column: 1/-1; display:flex; align-items:center; justify-content:center; color:#999; padding-top:2in;">Ready for configuration...</div></div>';
+                container.innerHTML = '<div class="page"><div style="grid-column: 1/-1; display:flex; align-items:center; justify-content:center; color:#999; padding-top:2in;">Ready for data...</div></div>';
                 return;
             }
+
             for (let i = 0; i < allItems.length; i += t.perPage) {
                 const page = document.createElement('div');
                 page.className = 'page';
