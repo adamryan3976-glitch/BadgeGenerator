@@ -16,8 +16,8 @@
             --col-gap: 0.625in;
             --row-gap: 0.167in;
             --cols: 2;
-            /* Dynamic sizing defaults */
-            --agenda-font-size: 8pt;
+            /* Enhanced dynamic sizing defaults */
+            --agenda-font-size: 10pt;
         }
 
         @page { size: letter; margin: 0; }
@@ -43,7 +43,7 @@
             width: var(--label-width);
             height: var(--label-height);
             border: 1px dashed #ddd;
-            padding: 0.12in;
+            padding: 0.1in;
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
@@ -55,18 +55,16 @@
             overflow: hidden;
         }
 
-        /* Standard background overlay if a custom image is set */
         .badge.has-bg::before {
             content: "";
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(255, 255, 255, 0.7); 
+            background: rgba(255, 255, 255, 0.75); 
             z-index: 0;
         }
 
         .badge > * { position: relative; z-index: 1; }
 
-        /* Default "No Media" Styling if no custom background is uploaded */
         .badge.no-media:not(.has-bg) {
             background-color: #FFF0F5 !important;
             border: 2.5px solid #FF1493 !important;
@@ -80,42 +78,70 @@
             #badge-container { margin-left: 0 !important; padding: 0 !important; }
         }
 
-        /* Branding & Layout */
-        .header { display: flex; align-items: center; border-bottom: 2px solid #8B0000; padding-bottom: 4px; margin-bottom: 4px; }
-        .logo { height: 0.4in; width: auto; margin-right: 8px; object-fit: contain; }
-        .event-title { font-size: 8.5pt; font-weight: bold; color: #333; line-height: 1.1; flex: 1; min-height: 1em; }
+        .header { display: flex; align-items: center; border-bottom: 2px solid #8B0000; padding-bottom: 2px; margin-bottom: 3px; }
+        .logo { height: 0.35in; width: auto; margin-right: 8px; object-fit: contain; }
+        .event-title { font-size: 8pt; font-weight: bold; color: #333; line-height: 1.1; flex: 1; text-transform: uppercase; }
         
-        .student-name { font-size: 12pt; font-weight: 900; text-transform: uppercase; margin: 1px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .student-info { font-size: 7.5pt; color: #555; margin-bottom: 1px; }
-        .supervisor { font-size: 6.5pt; font-style: italic; color: #666; margin-bottom: 4px; height: 10px; overflow: hidden; }
+        .student-name { font-size: 13pt; font-weight: 900; text-transform: uppercase; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #000; }
+        .student-info { font-size: 8pt; color: #444; margin-bottom: 1px; font-weight: 600; }
+        .supervisor { font-size: 7pt; font-style: italic; color: #666; margin-bottom: 3px; height: 12px; overflow: hidden; }
 
+        /* Agenda Section - Optimized for Readability */
         .sessions-container { 
-            background-color: rgba(255, 255, 255, 0.6); 
-            border: 1px solid rgba(0,0,0,0.05); 
+            background-color: rgba(255, 255, 255, 0.8); 
+            border: 1px solid rgba(0,0,0,0.1); 
             border-radius: 4px; 
-            padding: 4px 6px; 
+            padding: 3px 5px; 
             flex-grow: 1; 
             display: flex; 
             flex-direction: column; 
-            justify-content: center; 
-            gap: 2px;
+            justify-content: flex-start; /* Start from top to maximize space */
+            gap: 4px;
             overflow: hidden;
         }
+
         .session-row { 
-            display: flex; 
+            display: flex;
+            flex-direction: column; /* Stack label and activity to allow full width wrapping */
             font-size: var(--agenda-font-size); 
-            line-height: 1.2; 
-            align-items: baseline; 
-            border-bottom: 1px dotted rgba(0,0,0,0.05);
-            padding: 2px 0;
+            line-height: 1.1; 
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            padding-bottom: 2px;
         }
         .session-row:last-child { border-bottom: none; }
 
-        .session-label { font-weight: bold; color: #8B0000; margin-right: 8px; flex-shrink: 0; }
-        .session-activity { flex: 1; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 4px; }
-        .session-loc { color: #666; font-style: italic; font-size: 0.9em; flex-shrink: 0; }
+        .session-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
 
-        /* UI Sidebar */
+        .session-label { 
+            font-weight: 800; 
+            color: #8B0000; 
+            font-size: 0.85em; 
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .session-loc { 
+            color: #444; 
+            font-style: italic; 
+            font-size: 0.85em; 
+            font-weight: bold;
+        }
+
+        .session-activity { 
+            font-weight: 700; 
+            color: #111;
+            word-wrap: break-word; /* Ensure long words wrap */
+            overflow-wrap: break-word;
+            display: block;
+            width: 100%;
+        }
+
+        /* UI Sidebar Styles */
         #ui-sidebar {
             position: fixed; top: 0; left: 0; width: 340px; height: 100vh;
             background: #1a1a1b; color: #e4e6eb; padding: 15px; overflow-y: auto;
@@ -123,35 +149,18 @@
             box-sizing: border-box;
         }
         #badge-container { margin-left: 340px; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-
         .control-group { margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #333; }
         label { display: block; font-size: 10px; font-weight: bold; margin-bottom: 4px; color: #b0b3b8; text-transform: uppercase; }
         select, input, button { width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #333; background: #242526; color: white; margin-bottom: 8px; box-sizing: border-box; font-size: 13px; }
-        
-        .btn-magic { background: #E91E63; border: none; font-weight: 900; cursor: pointer; padding: 16px; margin-top: 10px; color: white; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 4px 15px rgba(233, 30, 99, 0.4); transition: transform 0.1s; }
-        .btn-magic:hover { background: #ff2e7a; transform: translateY(-1px); }
-        .btn-magic:active { transform: translateY(1px); }
-
+        .btn-magic { background: #E91E63; border: none; font-weight: 900; cursor: pointer; padding: 16px; margin-top: 10px; color: white; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 4px 15px rgba(233, 30, 99, 0.4); }
         .btn-print { background: #333; border: 1px solid #444; color: #fff; cursor: pointer; padding: 8px; margin-top: 5px; font-weight: bold; }
-        .btn-print:hover { background: #444; }
-        
         .template-info { font-size: 11px; color: #4bb543; margin-top: -5px; margin-bottom: 10px; min-height: 14px; }
-        .template-dims { font-size: 12px; font-weight: bold; color: #ffcc00; margin-bottom: 10px; display: block; min-height: 16px; }
-        
+        .template-dims { font-size: 12px; font-weight: bold; color: #ffcc00; margin-bottom: 10px; }
         .mapping-row { display: flex; align-items: center; gap: 5px; margin-bottom: 5px; }
         .mapping-row span { font-size: 11px; flex: 1; }
         .mapping-row select { width: 60%; margin-bottom: 0; font-size: 11px; padding: 4px; }
-
-        .agenda-builder-row {
-            background: #2a2a2b; padding: 8px; border-radius: 4px; margin-bottom: 10px; border-left: 3px solid #8B0000;
-        }
-        .agenda-builder-row input { margin-bottom: 5px; border-color: #444; }
+        .agenda-builder-row { background: #2a2a2b; padding: 8px; border-radius: 4px; margin-bottom: 10px; border-left: 3px solid #8B0000; }
         .agenda-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
-        .agenda-grid select { margin-bottom: 0; font-size: 11px; }
-        .remove-row-btn { background: #444; color: #ff9999; border: none; padding: 2px 8px; font-size: 10px; cursor: pointer; border-radius: 2px; margin-top: 4px; }
-        
-        .file-input-wrapper { background: #2a2a2b; padding: 8px; border-radius: 4px; margin-bottom: 8px; border: 1px dashed #444; }
-        .file-input-wrapper span { font-size: 10px; color: #888; display: block; margin-bottom: 4px; }
     </style>
 </head>
 <body>
@@ -161,7 +170,7 @@
         
         <div class="control-group">
             <label>1. Avery Template Code</label>
-            <input type="text" id="templateSearch" placeholder="Enter code (e.g. 5395, 5392)" value="">
+            <input type="text" id="templateSearch" placeholder="Enter code (e.g. 5395)" value="">
             <div id="templateFeedback" class="template-info"></div>
             <div id="templateDims" class="template-dims"></div>
         </div>
@@ -169,19 +178,12 @@
         <div class="control-group">
             <label>2. Branding & Backgrounds</label>
             <input type="text" id="eventTitleInput" placeholder="Enter Event Title" value="">
-            
-            <div class="file-input-wrapper">
+            <div class="file-input-wrapper" style="font-size:10px; color:#888;">
                 <span>Corner Logo:</span>
                 <input type="file" id="logoInput" accept="image/*">
-            </div>
-
-            <div class="file-input-wrapper">
-                <span>Background (Media YES):</span>
+                <span>BG (Media YES):</span>
                 <input type="file" id="bgYesInput" accept="image/*">
-            </div>
-
-            <div class="file-input-wrapper">
-                <span>Background (Media NO):</span>
+                <span>BG (Media NO):</span>
                 <input type="file" id="bgNoInput" accept="image/*">
             </div>
         </div>
@@ -202,7 +204,7 @@
 
         <div class="control-group">
             <label>5. Blanks</label>
-            <input type="number" id="blankCount" value="0" min="0" placeholder="Qty of blanks">
+            <input type="number" id="blankCount" value="0" min="0">
         </div>
 
         <button class="btn-magic" onclick="render()">APPLY ADAMS MAGIC</button>
@@ -211,15 +213,14 @@
     </div>
 
     <div id="badge-container">
-        <div class="page" id="preview-placeholder">
+        <div class="page">
             <div style="grid-column: 1 / -1; display: flex; align-items: center; justify-content: center; color: #999; padding-top: 2in; text-align: center;">
-                Configure your settings in the sidebar,<br>then click "APPLY ADAMS MAGIC" to generate.
+                Configure settings & click "APPLY ADAMS MAGIC".
             </div>
         </div>
     </div>
 
     <script>
-        // Updated Default Logo URL from GitHub
         const DEFAULT_LOGO = "https://github.com/adamryan3976-glitch/BadgeGenerator/blob/main/Badge%20Generator%20Logo.png?raw=true";
         let currentLogo = DEFAULT_LOGO;
         let backgroundYes = null;
@@ -259,15 +260,17 @@
             renderAgendaBuilder();
         }
 
+        // Maximizing the font size dynamically based on row count
         function updateDynamicStyles() {
             const count = agendaConfig.length;
             const root = document.documentElement;
-            let size = "8pt";
-            if (count <= 2) size = "11pt";
-            else if (count === 3) size = "9.5pt";
-            else if (count === 4) size = "8.5pt";
-            else if (count === 5) size = "7.5pt";
-            else size = "6.5pt";
+            let size = "9pt";
+            if (count <= 1) size = "14pt";
+            else if (count === 2) size = "12pt";
+            else if (count === 3) size = "10.5pt";
+            else if (count === 4) size = "9.5pt";
+            else if (count === 5) size = "8.5pt";
+            else size = "7.5pt";
             root.style.setProperty('--agenda-font-size', size);
         }
 
@@ -284,12 +287,12 @@
                     locationOptions += `<option value="${hIdx}" ${hIdx === row.locationIdx ? 'selected' : ''}>${h}</option>`;
                 });
                 div.innerHTML = `
-                    <input type="text" value="${row.title}" oninput="agendaConfig[${idx}].title = this.value;" placeholder="Row Label">
+                    <input type="text" value="${row.title}" oninput="agendaConfig[${idx}].title = this.value;" placeholder="Label">
                     <div class="agenda-grid">
                         <select onchange="agendaConfig[${idx}].activityIdx = parseInt(this.value);">${activityOptions}</select>
                         <select onchange="agendaConfig[${idx}].locationIdx = parseInt(this.value);">${locationOptions}</select>
                     </div>
-                    <button class="remove-row-btn" onclick="removeAgendaRow(${idx})">Remove</button>
+                    <button style="background:#444; border:none; color:#ff9999; font-size:10px; margin-top:5px; cursor:pointer;" onclick="removeAgendaRow(${idx})">Remove</button>
                 `;
                 container.appendChild(div);
             });
@@ -310,44 +313,26 @@
                 root.style.setProperty('--row-gap', t.rowG);
                 root.style.setProperty('--cols', t.cols);
                 feedback.textContent = `Template: ${t.name}`;
-                feedback.style.color = "#4bb543";
-                dims.textContent = `Size: ${t.w.replace('in','')} x ${t.h.replace('in','')}`;
-            } else {
-                feedback.textContent = code ? "Template not found." : "";
-                feedback.style.color = "#ff9999";
-                dims.textContent = "";
+                dims.textContent = `Size: ${t.w} x ${t.h}`;
             }
         });
 
-        // Logo Upload
-        document.getElementById('logoInput').addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (ev) => { currentLogo = ev.target.result; };
-                reader.readAsDataURL(file);
-            }
-        });
-
-        // Background Upload (YES)
-        document.getElementById('bgYesInput').addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (ev) => { backgroundYes = ev.target.result; };
-                reader.readAsDataURL(file);
-            }
-        });
-
-        // Background Upload (NO)
-        document.getElementById('bgNoInput').addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (ev) => { backgroundNo = ev.target.result; };
-                reader.readAsDataURL(file);
-            }
-        });
+        // Background / Logo logic
+        const setupFileHandler = (id, targetVar) => {
+            document.getElementById(id).addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (ev) => { 
+                        if (id === 'logoInput') currentLogo = ev.target.result;
+                        if (id === 'bgYesInput') backgroundYes = ev.target.result;
+                        if (id === 'bgNoInput') backgroundNo = ev.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        };
+        setupFileHandler('logoInput'); setupFileHandler('bgYesInput'); setupFileHandler('bgNoInput');
 
         document.getElementById('csvInput').addEventListener('change', (e) => {
             const file = e.target.files[0];
@@ -359,53 +344,25 @@
                     csvData = lines.slice(1).map(line => line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.replace(/"/g, '').trim()));
                     
                     Object.keys(globalMappings).forEach(key => {
-                        globalMappings[key].index = headers.findIndex(h => {
-                            const l = h.toLowerCase();
-                            if (key === 'name') return l.includes('name');
-                            if (key === 'info1') return l.includes('school');
-                            if (key === 'info2') return l.includes('grade');
-                            if (key === 'sub') return l.includes('supervisor');
-                            if (key === 'media') return l.includes('media');
-                            return false;
-                        });
+                        globalMappings[key].index = headers.findIndex(h => h.toLowerCase().includes(key === 'name' ? 'name' : (key === 'info1' ? 'school' : (key === 'info2' ? 'grade' : key))));
                     });
-
-                    if (headers.some(h => h.toLowerCase().includes('session 1'))) {
-                        agendaConfig[0].activityIdx = headers.findIndex(h => h.toLowerCase() === 'session 1');
-                        agendaConfig[0].locationIdx = headers.findIndex(h => h.toLowerCase().includes('session 1 location'));
-                        if (agendaConfig[1]) {
-                            agendaConfig[1].activityIdx = headers.findIndex(h => h.toLowerCase() === 'session 2');
-                            agendaConfig[1].locationIdx = headers.findIndex(h => h.toLowerCase().includes('session 2 location'));
-                        }
-                    }
-                    setupMappingUI();
+                    
+                    document.getElementById('mapping-container').style.display = 'block';
+                    const mc = document.getElementById('column-mappings');
+                    mc.innerHTML = '';
+                    Object.keys(globalMappings).forEach(k => {
+                        let opts = `<option value="-1">Skip</option>` + headers.map((h, i) => `<option value="${i}" ${i === globalMappings[k].index ? 'selected' : ''}>${h}</option>`).join('');
+                        mc.innerHTML += `<div class="mapping-row"><span>${globalMappings[k].label}</span><select onchange="globalMappings['${k}'].index=parseInt(this.value)">${opts}</select></div>`;
+                    });
                     renderAgendaBuilder();
                 };
                 reader.readAsText(file);
             }
         });
 
-        function setupMappingUI() {
-            const container = document.getElementById('column-mappings');
-            const wrapper = document.getElementById('mapping-container');
-            container.innerHTML = '';
-            wrapper.style.display = 'block';
-            Object.keys(globalMappings).forEach(key => {
-                const row = document.createElement('div');
-                row.className = 'mapping-row';
-                let options = `<option value="-1">-- Skip --</option>`;
-                headers.forEach((h, i) => {
-                    options += `<option value="${i}" ${i === globalMappings[key].index ? 'selected' : ''}>${h}</option>`;
-                });
-                row.innerHTML = `<span>${globalMappings[key].label}</span><select onchange="globalMappings['${key}'].index = parseInt(this.value);">${options}</select>`;
-                container.appendChild(row);
-            });
-        }
-
         function createBadgeHTML(data = null) {
             const eventTitle = document.getElementById('eventTitleInput').value;
             let noMedia = false;
-            
             if (data && globalMappings.media.index !== -1) {
                 const val = (data[globalMappings.media.index] || "").toLowerCase();
                 if (val !== "yes" && val !== "" && val !== "y" && val !== "true") noMedia = true;
@@ -416,33 +373,24 @@
 
             let agendaHtml = agendaConfig.map(row => `
                 <div class="session-row">
-                    <span class="session-label">${row.title}:</span>
+                    <div class="session-header">
+                        <span class="session-label">${row.title}</span>
+                        <span class="session-loc">${getVal(row.locationIdx)}</span>
+                    </div>
                     <span class="session-activity">${getVal(row.activityIdx) || (data ? '' : '________________')}</span>
-                    <span class="session-loc">${getVal(row.locationIdx)}</span>
                 </div>
             `).join('');
 
-            let bgStyle = "";
-            let hasBgClass = "";
-            if (noMedia && backgroundNo) {
-                bgStyle = `background-image: url('${backgroundNo}');`;
-                hasBgClass = "has-bg";
-            } else if (!noMedia && backgroundYes) {
-                bgStyle = `background-image: url('${backgroundYes}');`;
-                hasBgClass = "has-bg";
-            }
+            let bgStyle = (noMedia && backgroundNo) ? `background-image: url('${backgroundNo}');` : (!noMedia && backgroundYes ? `background-image: url('${backgroundYes}');` : "");
 
             return `
-                <div class="badge ${noMedia ? 'no-media' : ''} ${hasBgClass}" style="${bgStyle}">
+                <div class="badge ${noMedia ? 'no-media' : ''} ${bgStyle ? 'has-bg' : ''}" style="${bgStyle}">
                     <div class="header">
                         <img src="${currentLogo}" class="logo" onerror="this.src='${DEFAULT_LOGO}'">
                         <div class="event-title">${eventTitle}</div>
                     </div>
-                    <div class="student-name">${getMapVal('name') || (data ? '' : "________________")}</div>
-                    <div class="student-info">
-                        ${getMapVal('info1')} ${getMapVal('info2') ? '&bull; ' + getMapVal('info2') : ''}
-                        ${!data ? '____________________' : ''}
-                    </div>
+                    <div class="student-name">${getMapVal('name') || (data ? '' : "John Smith")}</div>
+                    <div class="student-info">${getMapVal('info1')} ${getMapVal('info2') ? '&bull; ' + getMapVal('info2') : ''}</div>
                     <div class="supervisor">${getMapVal('sub') ? 'Supervisor: ' + getMapVal('sub') : ''}</div>
                     <div class="sessions-container">
                         ${agendaHtml}
@@ -454,42 +402,24 @@
         function render() {
             const container = document.getElementById('badge-container');
             const codeInput = document.getElementById('templateSearch').value.trim();
-            const status = document.getElementById('status');
+            if (!codeInput) return;
             
-            if (!codeInput) {
-                container.innerHTML = '<div class="page"><div style="grid-column: 1/-1; display:flex; align-items:center; justify-content:center; color:#8B0000; padding-top:2in; font-weight:bold;">PLEASE ENTER AN AVERY TEMPLATE CODE FIRST!</div></div>';
-                return;
-            }
-
-            status.textContent = "Processing Adams Magic...";
             updateDynamicStyles();
-
-            // Use a timeout to allow the UI to update the "Processing" message before heavy DOM work
-            setTimeout(() => {
-                container.innerHTML = '';
-                const t = templates[codeInput] || templates["5395"];
-                const blankCount = parseInt(document.getElementById('blankCount').value) || 0;
-                let allItems = [...csvData];
-                for(let i=0; i<blankCount; i++) allItems.push(null);
-                
-                if (allItems.length === 0 && blankCount === 0) {
-                    container.innerHTML = '<div class="page"><div style="grid-column: 1/-1; display:flex; align-items:center; justify-content:center; color:#999; padding-top:2in;">No data found in CSV or Blanks.</div></div>';
-                    status.textContent = "";
-                    return;
-                }
-
-                const fragment = document.createDocumentFragment();
-                for (let i = 0; i < allItems.length; i += t.perPage) {
-                    const page = document.createElement('div');
-                    page.className = 'page';
-                    const chunk = allItems.slice(i, i + t.perPage);
-                    page.innerHTML = chunk.map(item => createBadgeHTML(item)).join('');
-                    fragment.appendChild(page);
-                }
-                
-                container.appendChild(fragment);
-                status.textContent = `Magic Complete! ${allItems.length} Badges Generated.`;
-            }, 50);
+            container.innerHTML = '';
+            const t = templates[codeInput] || templates["5395"];
+            const blankCount = parseInt(document.getElementById('blankCount').value) || 0;
+            let allItems = [...csvData];
+            for(let i=0; i<blankCount; i++) allItems.push(null);
+            
+            const fragment = document.createDocumentFragment();
+            for (let i = 0; i < allItems.length; i += t.perPage) {
+                const page = document.createElement('div');
+                page.className = 'page';
+                page.innerHTML = allItems.slice(i, i + t.perPage).map(item => createBadgeHTML(item)).join('');
+                fragment.appendChild(page);
+            }
+            container.appendChild(fragment);
+            document.getElementById('status').textContent = `Generated ${allItems.length} Badges.`;
         }
 
         renderAgendaBuilder();
