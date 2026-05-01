@@ -69,6 +69,10 @@
             background-color: #FFF0F5 !important;
             border: 2.5px solid #FF1493 !important;
         }
+        /* Style for when Media NO has a background image */
+        .badge.no-media.has-bg {
+            border: 2.5px solid #FF1493 !important;
+        }
 
         @media print {
             body { background: none; }
@@ -161,6 +165,8 @@
         .mapping-row select { width: 60%; margin-bottom: 0; font-size: 11px; padding: 4px; }
         .agenda-builder-row { background: #2a2a2b; padding: 8px; border-radius: 4px; margin-bottom: 10px; border-left: 3px solid #8B0000; }
         .agenda-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+        .blanks-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 5px; }
+        .blank-item label { font-size: 9px; color: #888; }
     </style>
 </head>
 <body>
@@ -203,8 +209,17 @@
         </div>
 
         <div class="control-group">
-            <label>5. Blanks</label>
-            <input type="number" id="blankCount" value="0" min="0">
+            <label>5. Blanks to Generate</label>
+            <div class="blanks-grid">
+                <div class="blank-item">
+                    <label>MEDIA YES</label>
+                    <input type="number" id="blankYesCount" value="0" min="0">
+                </div>
+                <div class="blank-item">
+                    <label>MEDIA NO</label>
+                    <input type="number" id="blankNoCount" value="0" min="0">
+                </div>
+            </div>
         </div>
 
         <button class="btn-magic" onclick="render()">APPLY ADAMS MAGIC</button>
@@ -260,7 +275,6 @@
             renderAgendaBuilder();
         }
 
-        // Maximizing the font size dynamically based on row count
         function updateDynamicStyles() {
             const count = agendaConfig.length;
             const root = document.documentElement;
@@ -317,8 +331,7 @@
             }
         });
 
-        // Background / Logo logic
-        const setupFileHandler = (id, targetVar) => {
+        const setupFileHandler = (id) => {
             document.getElementById(id).addEventListener('change', (e) => {
                 const file = e.target.files[0];
                 if (file) {
@@ -360,9 +373,11 @@
             }
         });
 
-        function createBadgeHTML(data = null) {
+        function createBadgeHTML(data = null, forceNoMedia = false) {
             const eventTitle = document.getElementById('eventTitleInput').value;
-            let noMedia = false;
+            let noMedia = forceNoMedia;
+            
+            // If data is provided, check the media mapping
             if (data && globalMappings.media.index !== -1) {
                 const val = (data[globalMappings.media.index] || "").toLowerCase();
                 if (val !== "yes" && val !== "" && val !== "y" && val !== "true") noMedia = true;
@@ -389,9 +404,9 @@
                         <img src="${currentLogo}" class="logo" onerror="this.src='${DEFAULT_LOGO}'">
                         <div class="event-title">${eventTitle}</div>
                     </div>
-                    <div class="student-name">${getMapVal('name') || (data ? '' : "John Smith")}</div>
-                    <div class="student-info">${getMapVal('info1')} ${getMapVal('info2') ? '&bull; ' + getMapVal('info2') : ''}</div>
-                    <div class="supervisor">${getMapVal('sub') ? 'Supervisor: ' + getMapVal('sub') : ''}</div>
+                    <div class="student-name">${getMapVal('name') || (data ? '' : "&nbsp;")}</div>
+                    <div class="student-info">${getMapVal('info1') || "&nbsp;"} ${getMapVal('info2') ? '&bull; ' + getMapVal('info2') : ''}</div>
+                    <div class="supervisor">${getMapVal('sub') ? 'Supervisor: ' + getMapVal('sub') : '&nbsp;'}</div>
                     <div class="sessions-container">
                         ${agendaHtml}
                     </div>
@@ -407,19 +422,30 @@
             updateDynamicStyles();
             container.innerHTML = '';
             const t = templates[codeInput] || templates["5395"];
-            const blankCount = parseInt(document.getElementById('blankCount').value) || 0;
-            let allItems = [...csvData];
-            for(let i=0; i<blankCount; i++) allItems.push(null);
+            
+            const blankYesCount = parseInt(document.getElementById('blankYesCount').value) || 0;
+            const blankNoCount = parseInt(document.getElementById('blankNoCount').value) || 0;
+            
+            // 1. Data-driven badges
+            let allItems = csvData.map(item => ({ data: item, forceNo: false }));
+            
+            // 2. Add Blank YES badges
+            for(let i=0; i<blankYesCount; i++) allItems.push({ data: null, forceNo: false });
+            
+            // 3. Add Blank NO badges
+            for(let i=0; i<blankNoCount; i++) allItems.push({ data: null, forceNo: true });
             
             const fragment = document.createDocumentFragment();
             for (let i = 0; i < allItems.length; i += t.perPage) {
                 const page = document.createElement('div');
                 page.className = 'page';
-                page.innerHTML = allItems.slice(i, i + t.perPage).map(item => createBadgeHTML(item)).join('');
+                page.innerHTML = allItems.slice(i, i + t.perPage)
+                    .map(item => createBadgeHTML(item.data, item.forceNo))
+                    .join('');
                 fragment.appendChild(page);
             }
             container.appendChild(fragment);
-            document.getElementById('status').textContent = `Generated ${allItems.length} Badges.`;
+            document.getElementById('status').textContent = `Generated ${allItems.length} Badges (${csvData.length} from CSV, ${blankYesCount} YES blanks, ${blankNoCount} NO blanks).`;
         }
 
         renderAgendaBuilder();
